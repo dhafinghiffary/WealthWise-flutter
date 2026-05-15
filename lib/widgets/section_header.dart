@@ -1,0 +1,32 @@
+import 'package:flutter/material.dart';
+
+class SectionHeader extends StatelessWidget {
+  const SectionHeader({
+    super.key,
+    required this.title,
+    this.actionLabel,
+    this.onAction,
+  });
+
+  final String title;
+  final String? actionLabel;
+  final VoidCallback? onAction;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Row(
+        children: [
+          Text(
+            title,
+            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
+          ),
+          const Spacer(),
+          if (actionLabel != null)
+            TextButton(onPressed: onAction, child: Text(actionLabel!)),
+        ],
+      ),
+    );
+  }
+}

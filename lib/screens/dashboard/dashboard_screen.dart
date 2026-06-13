@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../core/constants/app_colors.dart';
 import '../../core/utils/app_helpers.dart';
 import '../../services/api_service.dart';
+import '../../services/receipt_service.dart';
 import '../../widgets/app_shell.dart';
 import '../../widgets/feedback_boxes.dart';
 import '../../widgets/mini_bars.dart';
@@ -43,11 +45,60 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
   }
 
+  Future<void> _scanReceipt() async {
+    final source = await showModalBottomSheet<ImageSource>(
+      context: context,
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.photo_camera_outlined),
+              title: const Text('Take a photo'),
+              onTap: () => Navigator.pop(context, ImageSource.camera),
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library_outlined),
+              title: const Text('Choose from gallery'),
+              onTap: () => Navigator.pop(context, ImageSource.gallery),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (source == null) return;
+
+    final picked = await ImagePicker().pickImage(
+      source: source,
+      imageQuality: 70,
+    );
+    if (picked == null) return;
+
+    setState(() => loading = true);
+    try {
+      final bytes = await picked.readAsBytes();
+      final res = dataMap(
+        await ReceiptService.scan(bytes: bytes, filename: picked.name),
+      );
+      if (!mounted) return;
+      setState(() => loading = false);
+      // Hand the parsed fields to the transaction form for review + confirm.
+      await Navigator.pushNamed(context, '/transactions/add', arguments: res);
+      await load();
+    } catch (e) {
+      if (mounted) {
+        setState(() => loading = false);
+        snack(context, 'Scan gagal: $e');
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return AppShell(
       title: 'Dashboard',
       loading: loading,
+      onRefresh: load,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -71,10 +122,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     QuickAction(
                       icon: Icons.document_scanner_outlined,
                       label: 'Scan Receipt',
-                      onTap: () => showDialog(
-                        context: context,
-                        builder: (_) => const ScanInfoDialog(),
-                      ),
+                      onTap: _scanReceipt,
                     ),
                     const SizedBox(height: 14),
                     QuickAction(
@@ -97,31 +145,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
           TransactionList(transactions: transactions, compact: true),
         ],
       ),
-    );
-  }
-}
-
-class ScanInfoDialog extends StatelessWidget {
-  const ScanInfoDialog({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      title: const Text('Scan Receipt'),
-      content: const Text(
-        'Fitur scan receipt ada di React sebagai upload gambar. Di Flutter ini endpoint backend sudah siap, sementara form manual tersedia.',
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text('Tutup'),
-        ),
-        FilledButton(
-          onPressed: () =>
-              Navigator.pushReplacementNamed(context, '/transactions/add'),
-          child: const Text('Isi Manual'),
-        ),
-      ],
     );
   }
 }

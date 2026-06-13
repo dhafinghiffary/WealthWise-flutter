@@ -37,8 +37,19 @@ class _AccountScreenState extends State<AccountScreen> {
   }
 
   Future<void> remove(int id) async {
-    await ApiService.delete('/accounts/$id');
-    await load();
+    final ok = await confirmDialog(
+      context,
+      title: 'Delete Account',
+      message:
+          'Deleting this account may affect related transactions. Continue?',
+    );
+    if (!ok) return;
+    try {
+      await ApiService.delete('/accounts/$id');
+      await load();
+    } catch (e) {
+      if (mounted) setState(() => error = e.toString());
+    }
   }
 
   @override
@@ -51,6 +62,7 @@ class _AccountScreenState extends State<AccountScreen> {
     return AppShell(
       title: 'Accounts',
       loading: loading,
+      onRefresh: load,
       actions: [
         IconButton(
           onPressed: () =>

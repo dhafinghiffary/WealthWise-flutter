@@ -5,6 +5,7 @@ import '../../services/api_service.dart';
 import '../../widgets/app_shell.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/custom_textfield.dart';
+import '../../widgets/date_field.dart';
 import '../../widgets/form_panel.dart';
 
 class GoalFormScreen extends StatefulWidget {
@@ -122,16 +123,8 @@ class _GoalFormScreenState extends State<GoalFormScreen> {
             ].map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
             onChanged: (v) => setState(() => plan = v ?? plan),
           ),
-          AppTextField(
-            label: 'Start Date',
-            controller: start,
-            hint: 'YYYY-MM-DD',
-          ),
-          AppTextField(
-            label: 'Target Date',
-            controller: end,
-            hint: 'YYYY-MM-DD',
-          ),
+          DateField(label: 'Start Date', controller: start),
+          DateField(label: 'Target Date', controller: end),
           AppTextField(label: 'Color Theme', controller: color),
           PrimaryButton(label: 'Save Goal', onPressed: save),
         ],

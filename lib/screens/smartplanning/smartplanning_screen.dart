@@ -38,8 +38,18 @@ class _SmartPlanningScreenState extends State<SmartPlanningScreen> {
   }
 
   Future<void> remove(int id) async {
-    await ApiService.delete('/goals/$id');
-    await load();
+    final ok = await confirmDialog(
+      context,
+      title: 'Delete Goal',
+      message: 'This goal and its saved progress will be removed. Continue?',
+    );
+    if (!ok) return;
+    try {
+      await ApiService.delete('/goals/$id');
+      await load();
+    } catch (e) {
+      if (mounted) setState(() => error = e.toString());
+    }
   }
 
   Future<void> funds(Map<String, dynamic> goal) async {
@@ -70,11 +80,20 @@ class _SmartPlanningScreenState extends State<SmartPlanningScreen> {
       ),
     );
     if (result == null) return;
-    await ApiService.put('/goals/${goal['id']}/funds', {
-      'type': result,
-      'amount': double.tryParse(amount.text) ?? 0,
-    });
-    await load();
+    final value = double.tryParse(amount.text) ?? 0;
+    if (value <= 0) {
+      if (mounted) snack(context, 'Masukkan jumlah yang valid.');
+      return;
+    }
+    try {
+      await ApiService.put('/goals/${goal['id']}/funds', {
+        'type': result,
+        'amount': value,
+      });
+      await load();
+    } catch (e) {
+      if (mounted) setState(() => error = e.toString());
+    }
   }
 
   @override
@@ -93,6 +112,7 @@ class _SmartPlanningScreenState extends State<SmartPlanningScreen> {
     return AppShell(
       title: 'Smart Planning',
       loading: loading,
+      onRefresh: load,
       actions: [
         IconButton(
           onPressed: () => Navigator.pushNamed(

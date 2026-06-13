@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../core/constants/app_colors.dart';
+import '../core/utils/app_helpers.dart';
 import '../services/auth_service.dart';
 import 'brand_mark.dart';
 import 'custom_button.dart';
@@ -13,12 +14,14 @@ class AppShell extends StatelessWidget {
     required this.child,
     this.actions = const [],
     this.loading = false,
+    this.onRefresh,
   });
 
   final String title;
   final Widget child;
   final List<Widget> actions;
   final bool loading;
+  final Future<void> Function()? onRefresh;
 
   @override
   Widget build(BuildContext context) {
@@ -65,9 +68,17 @@ class AppShell extends StatelessWidget {
               ),
             ),
             Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(28, 12, 28, 28),
-                child: child,
+              child: RefreshIndicator(
+                onRefresh: onRefresh ?? () async {},
+                notificationPredicate: onRefresh == null
+                    ? (_) => false
+                    : (_) => true,
+                color: AppColors.green2,
+                child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.fromLTRB(28, 12, 28, 28),
+                  child: child,
+                ),
               ),
             ),
           ],
@@ -185,6 +196,14 @@ class Sidebar extends StatelessWidget {
             leading: const Icon(Icons.logout, color: Colors.redAccent),
             title: const Text('Logout'),
             onTap: () async {
+              final ok = await confirmDialog(
+                context,
+                title: 'Logout',
+                message: 'Are you sure you want to sign out?',
+                confirmLabel: 'Logout',
+                destructive: false,
+              );
+              if (!ok) return;
               await AuthService.logout();
               if (context.mounted) {
                 Navigator.pushNamedAndRemoveUntil(

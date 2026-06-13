@@ -108,6 +108,40 @@ class ApiService {
     return decoded;
   }
 
+  /// Uploads a single file via multipart/form-data (e.g. receipt scan).
+  static Future<dynamic> uploadFile(
+    String path,
+    String field, {
+    required List<int> bytes,
+    required String filename,
+  }) async {
+    final uri = Uri.parse('$baseUrl$path');
+    final token = await getToken();
+    final request = http.MultipartRequest('POST', uri)
+      ..headers['Accept'] = 'application/json'
+      ..files.add(
+        http.MultipartFile.fromBytes(field, bytes, filename: filename),
+      );
+    if (token != null) request.headers['Authorization'] = 'Bearer $token';
+
+    final streamed = await request.send();
+    final response = await http.Response.fromStream(streamed);
+
+    dynamic decoded;
+    if (response.body.isNotEmpty) {
+      try {
+        decoded = jsonDecode(response.body);
+      } catch (_) {
+        decoded = response.body;
+      }
+    }
+
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw ApiException(_messageFrom(decoded), response.statusCode, decoded);
+    }
+    return decoded;
+  }
+
   static String _messageFrom(dynamic decoded) {
     if (decoded is Map) {
       if (decoded['message'] != null) return decoded['message'].toString();

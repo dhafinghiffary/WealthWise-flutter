@@ -46,6 +46,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return AppShell(
       title: 'Profile',
       loading: loading,
+      onRefresh: load,
       actions: [
         IconButton(
           onPressed: () =>

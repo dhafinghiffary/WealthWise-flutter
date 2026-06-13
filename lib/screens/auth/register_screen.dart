@@ -34,15 +34,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
       message = '';
     });
     try {
-      await AuthService.register(
+      final res = await AuthService.register(
         name: name.text.trim(),
         email: email.text.trim(),
         password: password.text,
         passwordConfirmation: confirm.text,
       );
-      setState(() => message = 'Account created successfully. Please login.');
-      await Future.delayed(const Duration(seconds: 1));
-      if (mounted) Navigator.pushReplacementNamed(context, '/login');
+      final backendMessage = res['message']?.toString();
+      setState(
+        () => message = backendMessage?.isNotEmpty == true
+            ? backendMessage!
+            : 'Account created successfully. Please check your email to verify your account, then log in.',
+      );
     } catch (e) {
       setState(() => error = e.toString());
     } finally {

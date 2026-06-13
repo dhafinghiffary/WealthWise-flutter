@@ -49,3 +49,50 @@ int? routeId(BuildContext context) {
 void snack(BuildContext context, String message) {
   ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
 }
+
+/// Shows a confirmation dialog before a destructive action.
+/// Returns `true` only when the user explicitly confirms.
+Future<bool> confirmDialog(
+  BuildContext context, {
+  required String title,
+  required String message,
+  String confirmLabel = 'Delete',
+  String cancelLabel = 'Cancel',
+  bool destructive = true,
+}) async {
+  final result = await showDialog<bool>(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: Text(title),
+      content: Text(message),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context, false),
+          child: Text(cancelLabel),
+        ),
+        FilledButton(
+          style: destructive
+              ? FilledButton.styleFrom(backgroundColor: Colors.redAccent)
+              : null,
+          onPressed: () => Navigator.pop(context, true),
+          child: Text(confirmLabel),
+        ),
+      ],
+    ),
+  );
+  return result ?? false;
+}
+
+/// Opens a date picker seeded from [current] (a `YYYY-MM-DD` string) and
+/// returns the chosen date formatted as `YYYY-MM-DD`, or `null` if cancelled.
+Future<String?> pickDate(BuildContext context, String current) async {
+  final seed = DateTime.tryParse(current) ?? DateTime.now();
+  final picked = await showDatePicker(
+    context: context,
+    initialDate: seed,
+    firstDate: DateTime(2000),
+    lastDate: DateTime(2100),
+  );
+  if (picked == null) return null;
+  return picked.toIso8601String().split('T').first;
+}

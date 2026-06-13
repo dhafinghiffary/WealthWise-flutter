@@ -79,6 +79,7 @@ class _FinancialHealthScreenState extends State<FinancialHealthScreen> {
     return AppShell(
       title: 'Financial Health',
       loading: loading,
+      onRefresh: load,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

@@ -37,8 +37,18 @@ class _CategoryScreenState extends State<CategoryScreen> {
   }
 
   Future<void> remove(int id) async {
-    await ApiService.delete('/categories/$id');
-    await load();
+    final ok = await confirmDialog(
+      context,
+      title: 'Delete Category',
+      message: 'This category will be permanently removed. Continue?',
+    );
+    if (!ok) return;
+    try {
+      await ApiService.delete('/categories/$id');
+      await load();
+    } catch (e) {
+      if (mounted) setState(() => error = e.toString());
+    }
   }
 
   @override
@@ -46,6 +56,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
     return AppShell(
       title: 'Categories',
       loading: loading,
+      onRefresh: load,
       actions: [
         IconButton(
           onPressed: () => Navigator.pushNamed(

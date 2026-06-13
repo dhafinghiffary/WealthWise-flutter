@@ -60,6 +60,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
     return AppShell(
       title: 'Statistics',
       loading: loading,
+      onRefresh: load,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

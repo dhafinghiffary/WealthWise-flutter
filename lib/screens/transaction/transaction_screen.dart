@@ -36,8 +36,18 @@ class _TransactionScreenState extends State<TransactionScreen> {
   }
 
   Future<void> remove(int id) async {
-    await ApiService.delete('/transactions/$id');
-    await load();
+    final ok = await confirmDialog(
+      context,
+      title: 'Delete Transaction',
+      message: 'This transaction will be permanently removed. Continue?',
+    );
+    if (!ok) return;
+    try {
+      await ApiService.delete('/transactions/$id');
+      await load();
+    } catch (e) {
+      if (mounted) setState(() => error = e.toString());
+    }
   }
 
   @override
@@ -45,6 +55,7 @@ class _TransactionScreenState extends State<TransactionScreen> {
     return AppShell(
       title: 'Transactions',
       loading: loading,
+      onRefresh: load,
       actions: [
         IconButton(
           onPressed: () => Navigator.pushNamed(

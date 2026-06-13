@@ -5,6 +5,7 @@ import '../../services/api_service.dart';
 import '../../widgets/app_shell.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/custom_textfield.dart';
+import '../../widgets/date_field.dart';
 import '../../widgets/form_panel.dart';
 import '../../widgets/id_dropdown.dart';
 
@@ -37,10 +38,17 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
     date.text = DateTime.now().toIso8601String().split('T').first;
   }
 
+  Map<String, dynamic>? _prefill;
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     id ??= routeId(context);
+    // Scanned-receipt data is passed as a Map route argument without an `id`.
+    final args = ModalRoute.of(context)?.settings.arguments;
+    if (!widget.isEdit && args is Map && args['id'] == null) {
+      _prefill ??= Map<String, dynamic>.from(args);
+    }
     if (accounts.isEmpty) load();
   }
 
@@ -63,6 +71,22 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
         categoryId = categories.isNotEmpty
             ? categories.first['id'] as int
             : null;
+        if (_prefill != null) {
+          amount.text = textOf(_prefill!['amount'], amount.text);
+          description.text = textOf(_prefill!['description'], description.text);
+          date.text = textOf(
+            _prefill!['transaction_date'],
+            date.text,
+          ).split(' ').first;
+          type = textOf(_prefill!['type'], type);
+          final expenseCategory = categories.firstWhere(
+            (c) => c['type'] == type,
+            orElse: () => <String, dynamic>{},
+          );
+          if (expenseCategory['id'] is int) {
+            categoryId = expenseCategory['id'] as int;
+          }
+        }
       }
     } catch (e) {
       error = e.toString();
@@ -143,11 +167,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
             controller: amount,
             keyboardType: TextInputType.number,
           ),
-          AppTextField(
-            label: 'Transaction Date',
-            controller: date,
-            hint: 'YYYY-MM-DD',
-          ),
+          DateField(label: 'Transaction Date', controller: date),
           AppTextField(
             label: 'Description',
             controller: description,

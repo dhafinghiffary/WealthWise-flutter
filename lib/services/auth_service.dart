@@ -15,18 +15,19 @@ class AuthService {
     return Map<String, dynamic>.from(data as Map);
   }
 
-  static Future<void> register({
+  static Future<Map<String, dynamic>> register({
     required String name,
     required String email,
     required String password,
     required String passwordConfirmation,
   }) async {
-    await ApiService.post('/register', {
+    final data = await ApiService.post('/register', {
       'name': name,
       'email': email,
       'password': password,
       'password_confirmation': passwordConfirmation,
     });
+    return data is Map ? Map<String, dynamic>.from(data) : <String, dynamic>{};
   }
 
   static Future<bool> isLoggedIn() => ApiService.hasToken();

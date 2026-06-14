@@ -134,21 +134,30 @@ class _SmartPlanningScreenState extends State<SmartPlanningScreen> {
             },
           ),
           const SizedBox(height: 18),
-          Wrap(
-            spacing: 14,
-            runSpacing: 14,
-            children: goals.map((goal) {
-              return GoalCard(
-                goal: goal,
-                onFunds: () => funds(goal),
-                onEdit: () => Navigator.pushNamed(
-                  context,
-                  '/smart-planning/edit',
-                  arguments: goal['id'],
-                ).then((_) => load()),
-                onDelete: () => remove(goal['id'] as int),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final twoCol = constraints.maxWidth >= 720;
+              final cardWidth = twoCol
+                  ? (constraints.maxWidth - 14) / 2
+                  : constraints.maxWidth;
+              return Wrap(
+                spacing: 14,
+                runSpacing: 14,
+                children: goals.map((goal) {
+                  return GoalCard(
+                    width: cardWidth,
+                    goal: goal,
+                    onFunds: () => funds(goal),
+                    onEdit: () => Navigator.pushNamed(
+                      context,
+                      '/smart-planning/edit',
+                      arguments: goal['id'],
+                    ).then((_) => load()),
+                    onDelete: () => remove(goal['id'] as int),
+                  );
+                }).toList(),
               );
-            }).toList(),
+            },
           ),
         ],
       ),

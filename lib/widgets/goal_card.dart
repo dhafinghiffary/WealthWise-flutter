@@ -12,12 +12,14 @@ class GoalCard extends StatelessWidget {
     required this.onFunds,
     required this.onEdit,
     required this.onDelete,
+    this.width = 330,
   });
 
   final Map<String, dynamic> goal;
   final VoidCallback onFunds;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
+  final double width;
 
   @override
   Widget build(BuildContext context) {
@@ -26,7 +28,7 @@ class GoalCard extends StatelessWidget {
     final progress = target <= 0 ? 0.0 : (current / target).clamp(0.0, 1.0);
 
     return SizedBox(
-      width: 330,
+      width: width,
       child: CardPanel(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
